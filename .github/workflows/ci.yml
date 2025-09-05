@@ -16,7 +16,7 @@ jobs:
         image: postgres:17
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: admin@123 #as i used the trust method in pg_hba.conf
+          POSTGRES_PASSWORD: "admin@123"
           POSTGRES_DB: fhv
         ports:
           - 5432:5432
