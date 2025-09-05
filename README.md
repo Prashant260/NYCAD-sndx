@@ -89,3 +89,54 @@ docker-compose up --build
 - The backend schedules a daily sync (default 3 AM UTC) using `CRON_SCHEDULE` env var.
 - You can force a one-time sync by running `npm run seed` in `backend/`.
 - Secrets/DB credentials should be managed via environment variables.
+
+# Continuous Integration (CI) Pipeline
+
+To make sure the project stays stable and nothing breaks when new code is pushed, I set up a CI pipeline using GitHub Actions.
+You can find the workflow file here: .github/workflows/ci.yml.
+
+🔄 When does it run?
+
+The pipeline runs automatically whenever:
+
+I push code to the main branch
+
+Someone opens a pull request into main
+
+This way, every change is tested before it goes live.
+
+# What happens in the workflow?
+🔹 Backend job
+
+Spins up a fresh PostgreSQL (v17) database in the GitHub Actions runner.
+
+Installs backend dependencies.
+
+Runs all backend tests to make sure APIs and DB logic work as expected.
+
+🔹 Frontend job
+
+Installs frontend dependencies.
+
+Builds the React app to confirm there are no errors.
+
+So in short → the backend is tested, and the frontend is built on every commit.
+
+✅ Why is this useful?
+
+I don’t have to manually test things every time I change the code.
+
+If something is broken, the pipeline fails immediately and I know where to look.
+
+It makes collaboration easier because everyone’s changes are verified automatically.
+
+📝 A small note
+
+I removed the database seeding step from the CI pipeline because it was making the runs heavy and slow.
+If you want to try the project locally and need sample data, you can still run this manually:
+
+cd backend
+npm run seed
+
+
+That will fetch and load data into your local Postgres database.
