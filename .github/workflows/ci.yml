@@ -8,6 +8,9 @@ on:
 
 jobs:
   backend:
+   
+    name: Backend Tests
+    runs-on: ubuntu-latest
     env:
       NODE_ENV: test
       PORT: 4000
@@ -16,9 +19,7 @@ jobs:
       PGUSER: postgres
       PGPASSWORD: postgres
       PGDATABASE: fhv
-    name: Backend Tests
-    runs-on: ubuntu-latest
-
+      
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
