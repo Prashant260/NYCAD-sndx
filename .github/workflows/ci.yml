@@ -11,15 +11,16 @@ jobs:
    
     name: Backend Tests
     runs-on: ubuntu-latest
-    env:
-      NODE_ENV: test
-      PORT: 4000
-      PGHOST: localhost
-      PGPORT: 5432
-      PGUSER: postgres
-      PGPASSWORD: postgres
-      PGDATABASE: fhv
-      
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: "" #as i used the trust method in pg_hba.conf
+          POSTGRES_DB: fhv
+        ports:
+          - 5432:5432
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
