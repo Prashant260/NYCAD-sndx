@@ -8,6 +8,14 @@ on:
 
 jobs:
   backend:
+    env:
+      NODE_ENV: test
+      PORT: 4000
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: fhv
     name: Backend Tests
     runs-on: ubuntu-latest
 
