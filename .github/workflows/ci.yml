@@ -41,6 +41,7 @@ jobs:
       - name: frontend 
         run:  |
           docker-compose exec -T frontend npm run build
+          docker-compose exec -T frontend npm run test
 
       - name: Scan backend image
         run: trivy image -f json -o trivy-reports/backend.json backend:latest
