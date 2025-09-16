@@ -1,0 +1,54 @@
+name: ci
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v4
+
+      - name: 'install docker compose' 
+        run: |
+         sudo apt-get update
+         sudo apt-get install -y docker-compose
+         
+      - name: 'Build and start all services'
+        run: docker-compose up -d --build
+
+      - name: 'Wait for services'
+        run: |
+          until pg_isready -h localhost -U user -d testdb; do
+            echo "Waiting for Postgres..."
+            sleep 2
+              done
+            echo "Postgres is ready!"
+
+      - name: backend 
+        run: |
+          docker-compose exec -T backend npm test
+
+      - name: frontend 
+        run:  |
+         docker-compose build frontend
+         docker-compose up -d frontend
+         
+
+      - name: Scan backend image
+        run: trivy image -f json -o trivy-reports/backend.json backend:latest
+
+      - name: Scan frontend image
+        run: trivy image -f json -o trivy-reports/frontend.json frontend:latest
+
+      - name: Tear down containers
+        run: docker-compose down -v
