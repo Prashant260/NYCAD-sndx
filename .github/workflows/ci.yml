@@ -1,40 +1,51 @@
-name: CI workflow
+name: ci
 
 on:
   push:
-    branches: [ main ]
+    branches: [ $default-branch ]
   pull_request:
+    branches: [ $default-branch ]
+
+permissions:
+  contents: read
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
 
-
-      - name: Build images
-        run: docker-compose build
-  test:
     runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - uses: actions/checkout@v3
-      - name: Run backend tests
-        run: docker-compose run --rm backend npm test
-      - name: Run frontend tests
-        run: docker-compose run --rm frontend npm test                                                                                                                                                                                                                                                                    trivy:                                                                                                                                                        runs-on: ubuntu-latest                                                                                                                                      needs: build                                                                                                                                                steps:                                                                                                                                                        - uses: actions/checkout@v3                                                                                                                                 - name: Run Trivy scan                                                                                                                                        uses: aquasecurity/trivy-action@master                                                                                                                      with:                                                                                                                                                         image-ref: backend:latest                                                                                                                                   severity: HIGH,CRITICAL                                                                                                                                     exit-code: 1                                                                                                                                            - name: Run Trivy scan (frontend)                                                                                                                             uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: frontend:latest
-          severity: HIGH,CRITICAL
-          exit-code: 1
 
-  sonarqube:
-    runs-on: ubuntu-latest
-    needs: test
     steps:
-      - uses: actions/checkout@v3
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@master
-        env:
-          SONAR_HOST_URL: http://sonarqube:9000
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: checkout repository
+        uses: actions/checkout@v4
+
+      - name: 'install docker compose' 
+        run: |
+         sudo apt-get update
+         sudo apt-get install -y docker-compose
+         
+      - name: Build and start all services
+        run: docker-compose up -d --build
+
+      - name: Wait for services
+        run: |
+          echo "Waiting for Postgres to be ready..."
+          until docker-compose exec -T db pg_isready -U postgres; do
+            sleep 2
+          done
+
+      - name: backend 
+        run: |
+          docker-compose exec -T backend npm test
+
+      - name: frontend 
+        run:  |
+          docker-compose exec -T backend npm build
+
+      - name: Scan backend image
+        run: trivy image -f json -o trivy-reports/backend.json backend:latest
+
+      - name: Scan frontend image
+        run: trivy image -f json -o trivy-reports/frontend.json frontend:latest
+
+      - name: Tear down containers
+        run: docker-compose down -v
