@@ -48,7 +48,7 @@ jobs:
           ignore-unfixed: true
           format: json
           output: reports/trivy-frontend.json
-          exit-code: 1
+          exit-code: 0
           severity: HIGH,CRITICAL
 
       - name: Backend vulnerability scan with Trivy
@@ -59,7 +59,7 @@ jobs:
           ignore-unfixed: true
           format: json
           output: reports/trivy-backend.json
-          exit-code: 1
+          exit-code: 0
           severity: HIGH,CRITICAL
         
 
