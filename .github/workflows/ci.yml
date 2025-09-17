@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   build-and-scan:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest   # must be indented 2 spaces under job name
 
     steps:
       - name: checkout repository
