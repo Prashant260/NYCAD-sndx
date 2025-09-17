@@ -43,11 +43,35 @@ jobs:
           docker-compose build frontend
           docker-compose up -d frontend
 
-      - name: Scan backend image
-        run: trivy image -f json -o trivy-reports/backend.json backend:latest
+      - name: frontend vulnerability scan with trivy
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: image
+          image-ref: frontend:latest
+          ignore-unfixed: true
+          format: json
+          output: report/trivy-frontend.json
+          exit-code: 1
+          severity: HIGH,CRITICAL
+            
+     - name: backend vulnerability scan with trivy
+       uses: aquasecurity/trivy-action@0.24.0
+       with:
+          scan-type: image
+          image-ref: backend:latest
+          ignore-unfixed: true
+          format: json
+          output: report/trivy-backend.json
+          exit-code: 1
+          severity: HIGH,CRITICAL 
 
-      - name: Scan frontend image
-        run: trivy image -f json -o trivy-reports/frontend.json frontend:latest
+  #upload 
+      - name: Upload Trivy scan reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-reports
+          path: reports/    
 
       - name: Tear down containers
-        run: docker-compose down -v
+        if: always()
+        run: docker-compose down -v          
