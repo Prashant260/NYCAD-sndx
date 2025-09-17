@@ -11,60 +11,60 @@ permissions:
 
 jobs:
   build-and-scan:
-    runs-on: ubuntu-latest   # must be indented 2 spaces under job name
+    runs-on: ubuntu-latest
 
     steps:
-      - name: checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v4
-         
-      - name: 'Build and start all services'
-        run: docker-compose up -d --build
 
-      - name: 'Wait for services'
+      - name: Build and start all services
+        run: docker compose up -d --build
+
+      - name: Wait for Postgres
         run: |
+          sudo apt-get update && sudo apt-get install -y postgresql-client
           until pg_isready -h localhost -U user -d testdb; do
             echo "Waiting for Postgres..."
             sleep 2
-              done
-            echo "Postgres is ready!"
+          done
+          echo "Postgres is ready!"
 
-      - name: backend 
+      - name: Run backend tests
+        run: docker compose exec -T backend npm test
+
+      - name: Build and start frontend
         run: |
-          docker-compose exec -T backend npm test
+          docker compose build frontend
+          docker compose up -d frontend
 
-      - name: frontend 
-        run:  |
-          docker-compose build frontend
-          docker-compose up -d frontend
-
-      - name: frontend vulnerability scan with trivy
+      - name: Frontend vulnerability scan with Trivy
         uses: aquasecurity/trivy-action@0.24.0
         with:
           scan-type: image
           image-ref: frontend:latest
           ignore-unfixed: true
           format: json
-          output: report/trivy-frontend.json
+          output: reports/trivy-frontend.json
           exit-code: 1
           severity: HIGH,CRITICAL
-            
-     - name: backend vulnerability scan with trivy
-       uses: aquasecurity/trivy-action@0.24.0
-       with:
+
+      - name: Backend vulnerability scan with Trivy
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
           scan-type: image
           image-ref: backend:latest
           ignore-unfixed: true
           format: json
-          output: report/trivy-backend.json
+          output: reports/trivy-backend.json
           exit-code: 1
-          severity: HIGH,CRITICAL 
- 
+          severity: HIGH,CRITICAL
+
       - name: Upload Trivy scan reports
         uses: actions/upload-artifact@v4
         with:
           name: trivy-reports
-          path: reports/    
+          path: reports/
 
       - name: Tear down containers
         if: always()
-        run: docker-compose down -v          
+        run: docker compose down -v
