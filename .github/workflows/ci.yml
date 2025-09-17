@@ -58,6 +58,9 @@ jobs:
           output: reports/trivy-backend.json
           exit-code: 1
           severity: HIGH,CRITICAL
+      
+      - name: Create reports directory
+        run:  rm -rf reports && mkdir -p reports   
 
       - name: Upload Trivy scan reports
         uses: actions/upload-artifact@v4
