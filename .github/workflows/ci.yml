@@ -14,19 +14,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        
-      - name: sonar-scan
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+         fetch-depth: 0 
       - uses: sonarsource/sonarqube-scan-action@master
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+            SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+            
+      - name: Checkout repository
+        uses: actions/checkout@v4
+                 
       - name: Build and start all services
         run: docker compose up -d --build
 
